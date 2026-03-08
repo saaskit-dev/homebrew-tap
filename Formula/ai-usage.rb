@@ -18,7 +18,18 @@ class AiUsage < Formula
     # Create data directory
     (var/"ai-usage").mkpath
   end
+  def post_install
+    # Create default config if not exists
+    config_path = HOMEBREW_PREFIX/"etc/ai-usage.yaml"
+    unless config_path.exist?
+      cp etc/"ai-usage.example.yaml", config_path
+      ohai "Created default config at #{config_path}"
+    end
 
+    # Start the service automatically
+    ohai "Starting ai-usage service..."
+    system "brew", "services", "start", "ai-usage"
+  end
   def post_install
     # Create default config if not exists
     config_path = HOMEBREW_PREFIX/"etc/ai-usage.yaml"
