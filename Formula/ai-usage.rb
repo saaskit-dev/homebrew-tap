@@ -3,35 +3,38 @@
 
 class AiUsage < Formula
   homepage "https://github.com/saaskit-dev/ai-usage"
-  url "https://github.com/saaskit-dev/ai-usage.git"
-  version "v0.1.0"
+  version "VERSION_PLACEHOLDER"
   license "MIT"
 
-  depends_on "go" => :build
+  on_macos do
+    on_arm do
+      url "https://github.com/saaskit-dev/ai-usage/releases/download/#{version}/ai-usage-macos-arm64.tar.gz"
+      sha256 "SHA256_MACOS_ARM64_PLACEHOLDER"
+    end
+    on_intel do
+      url "https://github.com/saaskit-dev/ai-usage/releases/download/#{version}/ai-usage-macos-amd64.tar.gz"
+      sha256 "SHA256_MACOS_AMD64_PLACEHOLDER"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "https://github.com/saaskit-dev/ai-usage/releases/download/#{version}/ai-usage-linux-arm64.tar.gz"
+      sha256 "SHA256_LINUX_ARM64_PLACEHOLDER"
+    end
+    on_intel do
+      url "https://github.com/saaskit-dev/ai-usage/releases/download/#{version}/ai-usage-linux-amd64.tar.gz"
+      sha256 "SHA256_LINUX_AMD64_PLACEHOLDER"
+    end
+  end
 
   def install
-    system "go", "build", "-o", bin/"ai-usage", "./cmd/ai-usage"
-
-    # Install example config
+    bin.install "ai-usage"
     etc.install "config.example.yaml" => "ai-usage.example.yaml"
-
-    # Create data directory
     (var/"ai-usage").mkpath
   end
-  def post_install
-    # Create default config if not exists
-    config_path = HOMEBREW_PREFIX/"etc/ai-usage.yaml"
-    unless config_path.exist?
-      cp etc/"ai-usage.example.yaml", config_path
-      ohai "Created default config at #{config_path}"
-    end
 
-    # Start the service automatically
-    ohai "Starting ai-usage service..."
-    system "brew", "services", "start", "ai-usage"
-  end
   def post_install
-    # Create default config if not exists
     config_path = HOMEBREW_PREFIX/"etc/ai-usage.yaml"
     unless config_path.exist?
       cp etc/"ai-usage.example.yaml", config_path
