@@ -84,6 +84,6 @@ class AiUsage < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/ai-usage --version")
+    assert_match "AI usage monitoring daemon", shell_output("#{bin}/ai-usage --help")
   end
 end
