@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 class AiUsage < Formula
-  desc "AI usage tracker"
+  desc "AI usage tracker for Claude, Copilot, and Cursor"
   homepage "https://github.com/saaskit-dev/ai-usage"
   url "https://github.com/saaskit-dev/ai-usage.git", tag: "v0.0.1"
   license "MIT"
@@ -17,34 +17,62 @@ class AiUsage < Formula
 
   def install
     system "go", "build", "-ldflags=-s -w", "-o", bin/"ai-usage", "./cmd/ai-usage"
-    etc.install "config.example.yaml" => "ai-usage.example.yaml"
+    (etc/"ai-usage.yaml").write example_config unless (etc/"ai-usage.yaml").exist?
     (var/"ai-usage").mkpath
+    (var/"log").mkpath
   end
 
   def post_install
-    config_path = HOMEBREW_PREFIX/"etc/ai-usage.yaml"
-    unless config_path.exist?
-      cp etc/"ai-usage.example.yaml", config_path
-      ohai "Created default config at #{config_path}"
-    end
+    # 启动服务
+    system "brew", "services", "start", "ai-usage"
+  end
+
+  def example_config
+    <<~YAML
+      # AI Usage Monitor Configuration
+      # Default: only Claude enabled, port 18000, interval 5min
+
+      server:
+        addr: ":18000"
+
+      monitor:
+        interval: "300s"
+
+      notify:
+        # apprise_urls:
+        #   - "schan://your-sendkey"
+        rules:
+          - event: depleted
+          - event: probe_error
+
+      providers:
+        claude:
+          enabled: true
+          # paths:
+          #   - ~/.claude-work/
+        copilot:
+          enabled: false
+          # token: ghp_xxx
+        cursor:
+          enabled: false
+          # token: xxx
+    YAML
   end
 
   def caveats
     <<~EOS
-      Configuration file created at:
-        #{HOMEBREW_PREFIX}/etc/ai-usage.yaml
+      Configuration: #{etc}/ai-usage.yaml
+      Log:           #{var}/log/ai-usage.log
+      Data:          #{var}/ai-usage/usage.json
 
-      To enable auto-start on macOS:
-        ai-usage daemon install
+      Commands:
+        ai-usage          Start daemon (foreground)
+        ai-usage status   Show status and paths
 
-      To enable auto-start on Linux:
-        sudo ai-usage daemon install
-
-      Or for user-level service (Linux):
-        ai-usage daemon install --user
-
-      Sample configuration at:
-        #{HOMEBREW_PREFIX}/etc/ai-usage.example.yaml
+      Manage with brew services:
+        brew services start ai-usage
+        brew services stop ai-usage
+        brew services restart ai-usage
     EOS
   end
 
